@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View, TouchableWithoutFeedback} from 'react-native';
+import { TextInput, StyleSheet, Text, View, Button} from 'react-native';
 
 export default class Options extends React.Component {
 
@@ -9,6 +9,7 @@ export default class Options extends React.Component {
     this.state={
       income:0,
       bills:0,
+      aahhh:'snake'
     }
   }
 
@@ -25,19 +26,19 @@ export default class Options extends React.Component {
   }
 
   numChange = (event) => {
-    const { target: { name, value } } = event
-    let newText = '';
-    let numbers = '0123456789';
+    // const { target: { name, value } } = event
+    // let newText = '';
+    // let numbers = '0123456789';
 
-    for (var i=0; i < value.length; i++) {
-        if(numbers.indexOf(value[i]) > -1 ) {
-            newText = newText + value[i];
-        }
-    }
-    this.setState({ [name]: Number(newText) })
+    // for (var i=0; i < value.length; i++) {
+    //     if(numbers.indexOf(value[i]) > -1 ) {
+    //         newText = newText + value[i];
+    //     }
+    // }
+    this.setState({aahhh: event.target.value })
   }
 
-  const numInput = ({name, value}) => {
+  numInput = (e) => {
     return(
       <TextInput 
          style={styles.textInput}
@@ -53,8 +54,23 @@ export default class Options extends React.Component {
   render(){
     return(
       <View>
-        {numInput({"income", this.state.income})}
-        {numInput({"bills", this.state.bills})}
+        <Text>{this.state.aahhh}</Text>
+        <TextInput 
+           style={styles.textInput}
+           keyboardType='numeric'
+           name='income'
+           onChangeText={e => this.numChange(e)}
+           value={String(this.state.income)}
+           maxLength={13}  //setting limit of input
+        />
+        <TextInput 
+           style={styles.textInput}
+           keyboardType='numeric'
+           name='bills'
+           onChangeText={e => this.numChange(e)}
+           value={String(this.state.bills)}
+           maxLength={13}  //setting limit of input
+        />
         <Button title="Submit" onPress={()=>this.props.setOptions(this.state)}/>
         <Button title="Reset Spending" onPress={this.props.resetSpending}/>
       </View>

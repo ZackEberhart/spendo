@@ -35,7 +35,6 @@ export default class App extends React.Component {
   }
 
   componentDidMount(){
-    this.setOptions({income: 1000, bills:500});
   //   this.monitorDay();
   //   this.timerID = setInterval(() => this.monitorDay(), 10000);
   //   this.hydrateStateWithLocalStorage();
@@ -206,7 +205,7 @@ export default class App extends React.Component {
     }
   }
 
-  const spender = ({unit, budget, spending}) => {
+  spender = ({unit, budget, spending}) => {
       <Spender unit={unit} budget={budget} spending={spending} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
   };
 
@@ -223,9 +222,9 @@ export default class App extends React.Component {
           </View>
           <View  style = {styles.middle}>
             <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
-              {spender("day", this.state.budgetDay, this.state.spendingDay)}
-              {spender("week", this.state.budgetWeek, this.state.spendingWeek)}
-              {spender("month", this.state.budgetMonth, this.state.spendingMonth)}
+              <Spender unit="Day" budget={this.state.budgetDay} spending={this.state.spendingDay} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+              <Spender unit="Week" budget={this.state.budgetWeek} spending={this.state.spendingWeek} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+              <Spender unit="Month" budget={this.state.budgetMonth} spending={this.state.spendingMonth} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
             </Swiper>
           </View>
           <View style={styles.edge}>
@@ -239,10 +238,9 @@ export default class App extends React.Component {
   }
 }
 
-// <Spender unit="Day" budget={this.state.budgetDay} spending={this.state.spendingDay} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-//               <Spender unit="Week" budget={this.state.budgetWeek} spending={this.state.spendingWeek} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-//               <Spender unit="Month" budget={this.state.budgetMonth} spending={this.state.spendingMonth} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-            
+ // {spender("day", this.state.budgetDay, this.state.spendingDay)}
+ //              {spender("week", this.state.budgetWeek, this.state.spendingWeek)}
+ //              {spender("month", this.state.budgetMonth, this.state.spendingMonth)}
 
 const styles = StyleSheet.create({
   edge:{
