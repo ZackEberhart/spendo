@@ -1,7 +1,8 @@
 import React from 'react';
-import { Dimensions, Alert, StyleSheet, Button, Text, View, TouchableWithoutFeedback} from 'react-native';
+import { Dimensions, TextInput, Alert, StyleSheet, Button, Text, View, TouchableWithoutFeedback} from 'react-native';
 import Swiper from 'react-native-swiper';
 import Spender from './src/Spender.js';
+import Options from './src/Options.js'
 import * as h from './src/Helpers.js';
 
 
@@ -29,7 +30,7 @@ export default class App extends React.Component {
       unit: "day",
       weeksLeft: h.weeksLeftInMonth(h.firstDayOfMonth()),
       previousDate: h.today(),
-      targetDate: h.firstDayOfMonth()
+      targetDate: h.firstDayOfMonth(),
     };
   }
 
@@ -90,7 +91,7 @@ export default class App extends React.Component {
     this.setState({spendingWeek: 0,spendingDay: 0});
   }
 
-  reset = () => {
+  resetSpending = () => {
     this.setState((state) => ({
         spendingMonth: 0,
         spendingWeek: 0,
@@ -205,29 +206,43 @@ export default class App extends React.Component {
     }
   }
 
+  const spender = ({unit, budget, spending}) => {
+      <Spender unit={unit} budget={budget} spending={spending} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+  };
+
   render() {
     return (
-      <View style={styles.container}>
-        <View style={styles.edge}>
-          <Text>The unit is {this.state.unit}</Text>
-          <Text> You have ${Math.round(h.remaining(this.getBudget(), this.getSpending()))} left</Text>
+      <Swiper>
+        <View style={styles.container}>
+          <Options setOptions={this.setOptions} resetSpending={this.resetSpending}/>
         </View>
-        <View  style = {styles.middle}>
-          <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
-            <Spender unit="Day" budget={this.state.budgetDay} spending={this.state.spendingDay} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-            <Spender unit="Week" budget={this.state.budgetWeek} spending={this.state.spendingWeek} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-            <Spender unit="Month" budget={this.state.budgetMonth} spending={this.state.spendingMonth} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-          </Swiper>
+        <View style={styles.container}>
+          <View style={styles.edge}>
+            <Text>The unit is {this.state.unit}</Text>
+            <Text> You have ${Math.round(h.remaining(this.getBudget(), this.getSpending()))} left</Text>
+          </View>
+          <View  style = {styles.middle}>
+            <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
+              {spender("day", this.state.budgetDay, this.state.spendingDay)}
+              {spender("week", this.state.budgetWeek, this.state.spendingWeek)}
+              {spender("month", this.state.budgetMonth, this.state.spendingMonth)}
+            </Swiper>
+          </View>
+          <View style={styles.edge}>
+            <Text> Amount is ${Math.round(this.state.amount)} </Text>
+            <Button title="Spend" onPress={this.spend}/>
+            <Button title="Cancel" onPress={this.cancel}/>
+          </View>
         </View>
-        <View style={styles.edge}>
-          <Text> Amount is ${Math.round(this.state.amount)} </Text>
-          <Button title="Spend" onPress={this.spend}/>
-          <Button title="Cancel" onPress={this.cancel}/>
-        </View>
-      </View>
+      </Swiper>
     );
   }
 }
+
+// <Spender unit="Day" budget={this.state.budgetDay} spending={this.state.spendingDay} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+//               <Spender unit="Week" budget={this.state.budgetWeek} spending={this.state.spendingWeek} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+//               <Spender unit="Month" budget={this.state.budgetMonth} spending={this.state.spendingMonth} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+            
 
 const styles = StyleSheet.create({
   edge:{
@@ -238,7 +253,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'powderblue',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   middle:{
