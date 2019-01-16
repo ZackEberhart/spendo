@@ -23,6 +23,12 @@ export default class Spender extends React.Component {
     this.speed = 400;
   }
 
+  onLayout = event => {
+    if (this.state.dimensions) return;
+    let {width, height} = event.nativeEvent.layout;
+    this.setState({dimensions: {width, height}});
+  }
+
   render(){
     if (this.state.dimensions) {
       var { width, height } = this.state.dimensions;
@@ -36,22 +42,18 @@ export default class Spender extends React.Component {
       width:diameter,
       height:diameter,
       borderRadius:diameter/2,
-      backgroundColor: 'green',
+      // borderWidth: 5,
+      // borderColor: '#0C7C59',
+      backgroundColor: '#11B27F',
     };
 
     return(
       <View style = {styles.middle} onLayout = {this.onLayout}>
-        <TouchableWithoutFeedback delayPressIn={40} onPressIn = {this.increaseAmount} onPressOut = {this.stopTimer}>
+        <TouchableWithoutFeedback delayPressIn={100} onPressIn = {this.increaseAmount} onPressOut = {this.stopTimer}>
           <View style = {buttonStyle}/>
         </TouchableWithoutFeedback>
       </View>
     );
-  }
-
-  onLayout = event => {
-    if (this.state.dimensions) return;
-    let {width, height} = event.nativeEvent.layout;
-    this.setState({dimensions: {width, height}});
   }
 }
 
@@ -60,5 +62,6 @@ const styles = StyleSheet.create({
     flex:4, 
     alignItems: 'center', 
     justifyContent: 'center',
+    marginVertical:20
   },
 });

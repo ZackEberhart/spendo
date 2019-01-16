@@ -1,5 +1,6 @@
 import React from 'react';
-import { Dimensions, TextInput, Alert, StyleSheet, Button, Text, View, TouchableWithoutFeedback} from 'react-native';
+import {Font} from 'expo';
+import { Dimensions, TextInput, Animated, Alert, TouchableNativeFeedback, Keyboard, StyleSheet, Button, Text, ScrollView, View, TouchableWithoutFeedback} from 'react-native';
 import Swiper from 'react-native-swiper';
 import Spender from './src/Spender.js';
 import Options from './src/Options.js'
@@ -18,6 +19,7 @@ export default class App extends React.Component {
   constructor(props){
     super(props);
     this.state = {
+      fontLoaded:false,
       income:0,
       bills:0,
       amount:0,
@@ -28,13 +30,21 @@ export default class App extends React.Component {
       budgetWeek: 0,
       budgetDay: 0,
       unit: "day",
+      backgroundColor: new Animated.Value(0),
       weeksLeft: h.weeksLeftInMonth(h.firstDayOfMonth()),
       previousDate: h.today(),
       targetDate: h.firstDayOfMonth(),
     };
   }
 
-  componentDidMount(){
+  async componentWillMount() {
+    await Font.loadAsync({
+      'Arial': require('./assets/Arial.ttf')
+    });
+    this.setState({ fontLoaded: true });
+  }
+
+  // componentDidMount(){
   //   this.monitorDay();
   //   this.timerID = setInterval(() => this.monitorDay(), 10000);
   //   this.hydrateStateWithLocalStorage();
@@ -42,7 +52,7 @@ export default class App extends React.Component {
   //     "beforeunload",
   //     this.saveStateToLocalStorage.bind(this)
   //   );    
-  } 
+  // } 
 
   // componentWillUnmount(){
   //   clearInterval(this.timerID);
@@ -90,14 +100,6 @@ export default class App extends React.Component {
     this.setState({spendingWeek: 0,spendingDay: 0});
   }
 
-  resetSpending = () => {
-    this.setState((state) => ({
-        spendingMonth: 0,
-        spendingWeek: 0,
-        spendingDay: 0,
-      }));
-  }
-
   newDay(){
     if(h.daysLeftInMonth(this.state.targetDate) <= 0){
       this.setState((state) => ({
@@ -127,18 +129,39 @@ export default class App extends React.Component {
     this.setState({previousDate: h.today()});
   }
 
+  updateBG = (curr, next) =>{
+    this.setState({ backgroundColor: new Animated.Value(curr)}, () => {
+       Animated.timing(this.state.backgroundColor, {
+        toValue: next,
+        duration: 200,
+      }).start();
+    });
+  }
+
   changeUnit = (e, state, context) => {
+    var curr = this.state.backgroundColor._value;
     switch(state.index){
       case 0:
+        ((this.state.unit==="week")?this.updateBG(curr,0):this.updateBG(curr,100));
         this.setState({unit:"day"});
         break;
       case 1: 
+        ((this.state.unit==="day")?this.updateBG(0, 33):this.updateBG(curr, 33));
         this.setState({unit:"week"});
         break;
       case 2:
+        ((this.state.unit==="day")?this.updateBG(100,66):this.updateBG(curr,66));
         this.setState({unit:"month"});
         break;
     }
+  }
+
+  resetSpending = () => {
+    this.setState((state) => ({
+        spendingMonth: 0,
+        spendingWeek: 0,
+        spendingDay: 0,
+      }));
   }
 
   spend = () => {
@@ -167,14 +190,14 @@ export default class App extends React.Component {
     this.setState({amount:0});
   }
 
-  cancel = () => {
-    this.setState({amount:0});
-  }
-
   increaseAmount = (increment) => {
     this.setState((state) => ({
       amount:this.state.amount + increment
     }));
+  }
+
+  cancel = () => {
+    this.setState({amount:0});
   }
 
   getBudget = () => {
@@ -205,63 +228,91 @@ export default class App extends React.Component {
     }
   }
 
-  spender = ({unit, budget, spending}) => {
-      <Spender unit={unit} budget={budget} spending={spending} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+  spender = (unit, budget, spending) => {
+      return(
+        <Spender unit={unit} budget={budget} spending={spending} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+      )
   };
 
   render() {
+    if (!this.state.fontLoaded) return null;
+
+    var color = this.state.backgroundColor.interpolate({
+      inputRange: [0, 33, 66, 100],
+      outputRange: ["#B7E2C1", "#EFDABF", "#EAF2B5", "#B7E2C1"]
+    });
+
     return (
-      <Swiper>
-        <View style={styles.container}>
-          <Options setOptions={this.setOptions} resetSpending={this.resetSpending}/>
-        </View>
-        <View style={styles.container}>
+      <Swiper loop={false} showsPagination={false} onMomentumScrollEnd={()=>Keyboard.dismiss()}>
+        <Animated.View style={[styles.container,{backgroundColor:color}]}>
+          <View style={{flex:2}}/>
           <View style={styles.edge}>
-            <Text>The unit is {this.state.unit}</Text>
-            <Text> You have ${Math.round(h.remaining(this.getBudget(), this.getSpending()))} left</Text>
+            <Text style={styles.text}>The unit is {this.state.unit}</Text>
+            <Text style={styles.text}> You have ${Math.round(h.remaining(this.getBudget(), this.getSpending()))} left</Text>
           </View>
           <View  style = {styles.middle}>
             <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
-              <Spender unit="Day" budget={this.state.budgetDay} spending={this.state.spendingDay} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-              <Spender unit="Week" budget={this.state.budgetWeek} spending={this.state.spendingWeek} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
-              <Spender unit="Month" budget={this.state.budgetMonth} spending={this.state.spendingMonth} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
+              {this.spender("day", this.state.budgetDay, this.state.spendingDay)}
+              {this.spender("week", this.state.budgetWeek, this.state.spendingWeek)}
+              {this.spender("month", this.state.budgetMonth, this.state.spendingMonth)}
             </Swiper>
           </View>
           <View style={styles.edge}>
-            <Text> Amount is ${Math.round(this.state.amount)} </Text>
-            <Button title="Spend" onPress={this.spend}/>
-            <Button title="Cancel" onPress={this.cancel}/>
+            <TouchableNativeFeedback onPress={this.spend}onLongPress={this.cancel}background={TouchableNativeFeedback.SelectableBackground()}>
+              <View style={styles.button}>
+                <Text style={[styles.text, styles.buttonText]}>Spend ${Math.round(this.state.amount)}</Text>
+              </View>
+            </TouchableNativeFeedback>
           </View>
+          <View style={{flex:1}}/>
+        </Animated.View>
+        <View style={styles.container}>      
+          <Options setOptions={this.setOptions} resetSpending={this.resetSpending} income={this.state.income} bills={this.state.bills}/>
         </View>
       </Swiper>
     );
   }
 }
 
- // {spender("day", this.state.budgetDay, this.state.spendingDay)}
- //              {spender("week", this.state.budgetWeek, this.state.spendingWeek)}
- //              {spender("month", this.state.budgetMonth, this.state.spendingMonth)}
-
 const styles = StyleSheet.create({
+
   edge:{
-    flex:2, 
-    alignItems: 'center', 
+    flex: 3,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   container: {
     flex: 1,
-    backgroundColor: 'powderblue',
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'center',
+    backgroundColor:'#8EB1C7'
   },
   middle:{
-    flex:4, 
+    flex:12, 
     alignItems: 'center', 
     justifyContent: 'center',
-    backgroundColor: 'white'
   },
   containerStyle:{ 
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height
+  },
+  button:{
+    width:'90%',
+    height:'90%',
+    borderRadius:4,
+    // borderWidth: 3,
+    // borderColor: '#',
+    backgroundColor: '#11B27F',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text:{
+    fontSize:30,
+    color:'#11B27F',
+    fontWeight:'bold',
+  },
+  buttonText:{
+    color:'white',
+    fontSize:20,
   }
 });
