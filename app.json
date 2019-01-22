@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "spendo",
-    "slug": "spendo",
+    "name": "Spendo",
+    "slug": "Spendo",
+    "description": "Budgeting made EZPZ",
     "privacy": "public",
     "sdkVersion": "32.0.0",
     "platforms": [
-      "ios",
       "android"
     ],
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#11B27F"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -22,8 +22,8 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
+    "android": {
+      "package": "com.yourcompany.yourappname"
     }
   }
 }

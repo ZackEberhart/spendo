@@ -39,8 +39,16 @@ export function daysLeftInWeek(targetDate){
   return daysDiff - ((weeksLeftInMonth(targetDate) - 1) * 7 );
 }
 
+function addbits(s) {
+  console.log(s)
+  return Number((s.replace(/\s/g, '').match(/[+\-]?([0-9\.]+)/g) || [0])
+      .reduce(function(sum, value) {
+      return parseFloat(sum) + parseFloat(value);
+  }));
+}
+
 export function calculateBudgetMonth(state){
-  return {budgetMonth: state.income - state.bills};
+  return {budgetMonth: addbits(state.income) - addbits(state.bills)};
 }
 
 export function calculateBudgetWeek(state){
