@@ -9,7 +9,11 @@ export function remaining(budget, spending){
 }
 
 export function dateToString(date){
-  return date.toISOString().substr(0, 10);
+  return date.toISOString();
+}
+
+export function sameDate(date1, date2){
+  return date1.substr(0, 10)===date2.substr(0, 10);
 }
 
 export function today(){

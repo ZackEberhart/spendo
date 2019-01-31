@@ -1,12 +1,11 @@
 import React from 'react';
 import { TextInput, Keyboard, TouchableHighlight, AsyncStorage,
-          KeyboardAvoidingView, Platform,  StyleSheet, Text, View, ScrollView, Button, 
+          KeyboardAvoidingView, StyleSheet, Text, View, ScrollView, Button
        } from 'react-native';
 import Isao from '../assets/Isao.js'
 import MaterialsIcon from 'react-native-vector-icons/MaterialIcons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
-export default class Options extends React.Component {
+export default class Settings extends React.Component {
 
   constructor(props){
     super(props);
@@ -38,7 +37,7 @@ export default class Options extends React.Component {
     this.setState({[name]:newText});
   }
 
-  numInput = (field, style={}) => {
+  numInput = (field) => {
     return(
       <Isao 
          keyboardType='phone-pad'
@@ -49,7 +48,7 @@ export default class Options extends React.Component {
          placeholder="0"
          onChangeText={text => this.numChange(field, text)}
          value={String(this.state[field])}
-         style={[{marginBottom:20}, style]}
+         style={{marginBottom:20}}
       />
     );
   }
@@ -61,37 +60,22 @@ export default class Options extends React.Component {
 
   resetSpending = () => {
     Keyboard.dismiss()
-    // this.props.setOptions()
-    this.props.resetSpending()
+    this.props.setOptions()
+    // this.props.resetSpending()
   }
 
   render(){
     return(
-      <KeyboardAvoidingView style={styles.options}  enabled>
-      <ScrollView style={{paddingHorizontal:20}}>
+      <View style={styles.options}>
         <View style={styles.column}>
-          {this.numInput('income')}
-          {this.numInput('bills')}
-          <Text style={{color:'#191308', fontSize:25, fontWeight:"bold"}}>Monthly Budget:{' '} 
-            <Text style={{color:'#E7ECEF'}}>
-              ${addbits(this.props.income)-addbits(this.props.bills)}
-            </Text>
-          </Text>
-          <TouchableHighlight onPress={this.submit} style={styles.buttonStyle}>
-            <Text style={styles.btext}>SUBMIT</Text>
+          <TouchableHighlight onPress={this.resetSpending} style={styles.buttonStyle}>
+            <Text style={styles.btext} >RESET SPENDING</Text>
+          </TouchableHighlight>
+          <TouchableHighlight onPress={()=>AsyncStorage.clear()} style={[styles.buttonStyle, {backgroundColor: '#883B3B'}]}>
+            <Text style={styles.btext} >DELETE STORAGE</Text>
           </TouchableHighlight>
         </View>
-        <View />
-        <View style={styles.column}>
-          <View style={styles.row}>
-            <TouchableHighlight onPress={this.submit} style={styles.buttonStyle}>
-              <Text style={styles.btext}>SUBMIT</Text>
-            </TouchableHighlight>
-            {this.numInput('Bonus', {width:'40%'})}
-          </View>
-        </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 }
@@ -105,7 +89,7 @@ function addbits(s) {
 
 const styles = StyleSheet.create({
   options: {
-    flex:1,
+    marginHorizontal:20,
     alignItems:'stretch',
   },
 
@@ -130,9 +114,8 @@ const styles = StyleSheet.create({
   },
 
   row:{
+    alignItems:'stretch',
     flexDirection:'row',
-    justifyContent:'space-between',
-    flex:1
   },
   
 });

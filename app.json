@@ -24,6 +24,9 @@
     ],
     "android": {
       "package": "com.yourcompany.yourappname"
-    }
+    },
+    "androidStatusBar": {
+    "backgroundColor": "#000000"
+  }
   }
 }

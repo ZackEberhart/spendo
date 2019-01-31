@@ -13,27 +13,17 @@ export default class Spender extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    // console.log(this.state.remainingRadius._value)
-    if (this.state.dimensions) {
-      var { width, height } = this.state.dimensions;
-    }else{
-      var width= 200;
-    }
-    var diameter = Math.min(width*.95, height*.95);
-    var area = 3.14*((diameter/2)**2);
-    let displayedBudget = nextProps.budget;
-    let displayedSpending = nextProps.spending;
-    if(displayedSpending > displayedBudget) displayedSpending = displayedBudget;
-    this.setState({ remainingRadius: new Animated.Value(this.state.remainingRadius._value)}, () => {
-      Animated.timing(this.state.remainingRadius, {
-        toValue: Math.sqrt(area*(displayedBudget-displayedSpending)/displayedBudget/3.14),
-        duration: 200,
-        useNativeDrive: true
-      }).start();
-    })
-    // this.setState({remainingRadius: Math.sqrt(area*(displayedBudget-displayedSpending)/displayedBudget/3.14)})
-  }
+  // componentDidUpdate(nextProps) {
+  //   let displayedBudget = nextProps.budget;
+  //   let displayedSpending = nextProps.spending;
+  //   if(displayedSpending > displayedBudget) displayedSpending = displayedBudget;
+  //   Animated.timing(this.state.remainingRadius, {
+  //     toValue: ((displayedBudget-displayedSpending)/displayedBudget)||1,
+  //     duration: 1000,
+  //     useNativeDrive: true
+  //   }).start();
+  //   // this.setState({remainingRadius: Math.sqrt(area*(displayedBudget-displayedSpending)/displayedBudget/3.14)})
+  // }
 
   increaseAmount = () => {
     if(this.props.spending<this.props.budget){
@@ -62,7 +52,7 @@ export default class Spender extends React.Component {
       var width= 200;
     }
 
-    var diameter = Math.min(width*.95, height*.95);
+    var diameter = Math.min(width*.9, height*.9);
     var area = 3.14*((diameter/2)**2);
 
     let factor = ((this.props.unit === "day") ? .7 : ((this.props.unit === "week") ? .85 : 1))
@@ -71,13 +61,20 @@ export default class Spender extends React.Component {
     if(displayedSpending > displayedBudget) displayedSpending = displayedBudget;
     
     let totalRadius = factor*Math.sqrt(area/3.14);
-    let remainingRadius = factor*this.state.remainingRadius;
     let temporaryRadius = factor*Math.sqrt(area*(displayedBudget-displayedSpending-this.props.amount)/displayedBudget/3.14);
-    console.log(factor,this.state.remainingRadius)
+    let remainingRadius = factor*Math.sqrt(area*(displayedBudget-displayedSpending)/displayedBudget/3.14);
+    // let remainingRadius = factor*this.state.remainingRadius._value;
+    // let remainingRadius = this.state.remainingRadius.interpolate({
+    //   inputRange: [0, 1],
+    //   outputRange: [0, Math.sqrt(area/3.14)]
+    // });
+    // console.log(String(remainingRadius))
+    // rr = factor*Math.sqrt(area*remainingRadius/3.14)
 
     if(totalRadius < 0 || isNaN(totalRadius)) totalRadius = 0;
     if(temporaryRadius < 0 || isNaN(temporaryRadius)) temporaryRadius = 0;
     if(remainingRadius < 0 || isNaN(remainingRadius)) remainingRadius = 0;
+
 
     return(
       <View style = {styles.middle} onLayout = {this.onLayout}>

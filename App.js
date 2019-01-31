@@ -3,11 +3,13 @@ import {Font} from 'expo';
 import { 
           Dimensions, TextInput, Animated, Alert, TouchableNativeFeedback, 
           Keyboard, StyleSheet, Button, Text, ScrollView, View, 
-          TouchableWithoutFeedback, AsyncStorage, AppState, Vibration, Easing
+          TouchableWithoutFeedback, AsyncStorage, AppState, Vibration, Easing,
+          StatusBar, Platform
        } from 'react-native';
 import Swiper from 'react-native-swiper';
 import Spender from './src/Spender.js';
 import Options from './src/Options.js'
+import Settings from './src/Settings.js'
 import * as h from './src/Helpers.js';
 
 
@@ -41,6 +43,7 @@ export default class App extends React.Component {
   }
 
   async componentDidMount(){
+    // if(this.refs.swiper) this.refs.swiper.scrollBy(1, false)
     this.hydrateStateWithLocalStorage();
     this.monitorDay();
     AppState.addEventListener('change', this.monitorDay);
@@ -56,7 +59,7 @@ export default class App extends React.Component {
           let value = JSON.parse(item[i][1]);
           newState[key]=value
         });
-        this.setState(newState)
+        this.setState(newState, ()=>{this.refs.swiper.scrollBy(1, false)})
       })
     })
   }
@@ -72,13 +75,10 @@ export default class App extends React.Component {
     AsyncStorage.multiSet(store.map((item)=>{
       return [item, JSON.stringify(this.state[item])]
     }))
-    // console.log(store.map((item)=>{
-    //   return [item, JSON.stringify(this.state[item])]
-    // }))
   }
 
   monitorDay = () =>{
-    if(this.state.previousDate !== h.today()){
+    if(!h.sameDate(this.state.previousDate, h.today())){
       this.newDay();
     }
   }
@@ -143,7 +143,7 @@ export default class App extends React.Component {
 
   setOptions = (optionsState) =>{
     this.setState(optionsState);
-    this.resetSpending();
+    // this.resetSpending();
     this.setState(h.calculateBudgetMonth);
     this.setState(h.calculateBudgetWeek);
     this.setState(h.calculateBudgetDay, this.saveStore);
@@ -195,27 +195,6 @@ export default class App extends React.Component {
     }
   }
 
-  updateBG = (curr, next) =>{
-    this.setState({ backgroundColor: new Animated.Value(curr)}, () => {
-       Animated.timing(this.state.backgroundColor, {
-        toValue: next,
-        duration: 200,
-        useNativeDrive: true,
-
-      }).start();
-    });
-  }
-
-  updateText = (curr, next, speed) =>{
-    this.setState({ textColor: new Animated.Value(curr)}, () => {
-       Animated.timing(this.state.textColor, {
-        toValue: next,
-        duration: speed,
-        useNativeDrive: true
-      }).start();
-    });
-  }
-
   getBudget = () => {
     switch(this.state.unit){
       case "day":
@@ -244,6 +223,26 @@ export default class App extends React.Component {
     }
   }
 
+  updateBG = (curr, next) =>{
+    this.setState({ backgroundColor: new Animated.Value(curr)}, () => {
+       Animated.timing(this.state.backgroundColor, {
+        toValue: next,
+        duration: 300,
+        useNativeDrive: true,
+      }).start();
+    });
+  }
+
+  updateText = (curr, next, speed) =>{
+    this.setState({ textColor: new Animated.Value(curr)}, () => {
+       Animated.timing(this.state.textColor, {
+        toValue: next,
+        duration: speed,
+        useNativeDrive: true
+      }).start();
+    });
+  }
+
   spender = (unit, budget, spending, color) => {
       return(
         <Spender unit={unit} budget={budget} spending={spending} color={color} amount={this.state.amount} targetDate={this.state.targetDate} increaseAmount={this.increaseAmount}/>
@@ -251,9 +250,6 @@ export default class App extends React.Component {
   };
 
   render() {
-    if(!this.state.loaded){
-      return null
-    }
     var bgcolor = this.state.backgroundColor.interpolate({
       inputRange: [0, 33, 66, 100],
       outputRange: ["#11B27F", "#118AB2", "#7C77B9", "#11B27F"]
@@ -270,37 +266,46 @@ export default class App extends React.Component {
     });
 
     return (
-      <Swiper loop={false} showsPagination={false} onMomentumScrollEnd={()=>Keyboard.dismiss()}>
-        <Animated.View style={[styles.container,{backgroundColor:bgcolor}]}>
-          <View style={{flex:3}}/>
-          <View style={styles.edge}>
-            <Text style={[styles.text, {fontSize:60}]}>${Math.round(h.remaining(this.getBudget(), this.getSpending()))}</Text>
-            {this.state.unit==='day'?(
-              <Text style={styles.text}> for the rest of the day</Text>
-            ):(
-              <Text style={styles.text}> for the next {this.state.unit==='week' ? h.daysLeftInWeek(this.state.targetDate) : h.daysLeftInMonth(this.state.targetDate)} days</Text>
-            )}
+      <Animated.View style={[styles.container,{backgroundColor:bgcolor, }]}>
+        {this.state.loaded &&
+        <Swiper loop={false} showsPagination={false} onMomentumScrollEnd={()=>Keyboard.dismiss()} ref={'swiper'}>
+          <View style={styles.container}>
+            <Settings setOptions={this.setOptions} resetSpending={this.resetSpending} income={this.state.income} bills={this.state.bills}/>
           </View>
-          <View  style = {styles.middle}>
-            <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
-              {this.spender("day", this.state.budgetDay, this.state.spendingDay, "#11B27F")}
-              {this.spender("week", this.state.budgetWeek, this.state.spendingWeek, "#118AB2")}
-              {this.spender("month", this.state.budgetMonth, this.state.spendingMonth, "#7C77B9")}
-            </Swiper>
+          <View style={styles.container}>
+            <View style={{flex:1}}/>
+            <View style={styles.edge}>
+              <Text style={[styles.text, {fontSize:60}]}>${Math.round(h.remaining(this.getBudget(), this.getSpending()))}</Text>
+              {this.state.unit==='day'?(
+                <Text style={styles.text}> for the rest of the day</Text>
+              ):(
+                <Text style={styles.text}> for the next {this.state.unit==='week' ? h.daysLeftInWeek(this.state.targetDate) : h.daysLeftInMonth(this.state.targetDate)} days</Text>
+              )}
+            </View>
+            <View  style = {styles.middle}>
+              <Swiper onMomentumScrollEnd ={this.changeUnit} containerStyle={styles.containerStyle} showsPagination={false}>
+                {this.spender("day", this.state.budgetDay, this.state.spendingDay, "#11B27F")}
+                {this.spender("week", this.state.budgetWeek, this.state.spendingWeek, "#118AB2")}
+                {this.spender("month", this.state.budgetMonth, this.state.spendingMonth, "#7C77B9")}
+              </Swiper>
+            </View>
+            <View style={styles.edge}>
+              <TouchableNativeFeedback onPress={this.spend}onLongPress={this.cancel}background={TouchableNativeFeedback.SelectableBackground()}>
+                <Animated.View style={[styles.button, {alignItems:'stretch', backgroundColor:bgcolor}]}>
+                  <View style={{backgroundColor:'rgba(0, 0, 0, .3)', flex:1, borderRadius:5, alignItems:'center', justifyContent:'center'}}>
+                    <Animated.Text style={[styles.text, {fontSize: 40, color:textcolor}]}>${Math.round(Math.min(this.state.amount, h.remaining(this.getBudget(), this.getSpending())))}</Animated.Text>
+                  </View>
+                </Animated.View>
+              </TouchableNativeFeedback>
+            </View>
+            <View style={{flex:1}}/>
           </View>
-          <View style={styles.edge}>
-            <TouchableNativeFeedback onPress={this.spend}onLongPress={this.cancel}background={TouchableNativeFeedback.SelectableBackground()}>
-              <Animated.View style={[styles.button, {backgroundColor:buttoncolor}]}>
-                <Animated.Text style={[styles.text, {fontSize: 40, color:textcolor}]}>${Math.round(Math.min(this.state.amount, h.remaining(this.getBudget(), this.getSpending())))}</Animated.Text>
-              </Animated.View>
-            </TouchableNativeFeedback>
+          <View style={styles.container}>
+            <Options setOptions={this.setOptions} resetSpending={this.resetSpending} income={this.state.income} bills={this.state.bills}/>
           </View>
-          <View style={{flex:2}}/>
-        </Animated.View>
-        <Animated.View style={[styles.container,{backgroundColor:bgcolor}]}>
-          <Options setOptions={this.setOptions} resetSpending={this.resetSpending} income={this.state.income} bills={this.state.bills}/>
-        </Animated.View>
-      </Swiper>
+        </Swiper>
+      }
+      </Animated.View>
     );
   }
 }
@@ -318,7 +323,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'stretch',
     justifyContent: 'center',
-    backgroundColor:'#3993DD'
   },
   middle:{
     flex:14, 
